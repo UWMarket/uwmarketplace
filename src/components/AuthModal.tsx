@@ -115,7 +115,7 @@ const AuthModal = ({ isOpen = false, onOpenChange }: AuthModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] p-0 bg-white">
+      <DialogContent className="sm:max-w-[480px] p-0 bg-background">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle className="text-2xl font-bold text-center">
             UW Marketplace
@@ -184,7 +184,7 @@ const AuthModal = ({ isOpen = false, onOpenChange }: AuthModalProps) => {
                   )}
 
                   {success && (
-                    <Alert className="py-2 bg-green-50 text-green-800 border-green-200">
+                    <Alert className="py-2 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                       <AlertDescription>{success}</AlertDescription>
                     </Alert>
@@ -266,8 +266,8 @@ const AuthModal = ({ isOpen = false, onOpenChange }: AuthModalProps) => {
           <Card className="border-0 shadow-none">
             <CardContent className="p-6">
               <div className="flex flex-col items-center justify-center space-y-4">
-                <div className="rounded-full bg-blue-50 p-3">
-                  <AtSign className="h-8 w-8 text-blue-600" />
+                <div className="rounded-full bg-blue-50 dark:bg-blue-900 p-3">
+                  <AtSign className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <CardTitle>Check your email</CardTitle>
                 <CardDescription className="text-center">
@@ -275,7 +275,7 @@ const AuthModal = ({ isOpen = false, onOpenChange }: AuthModalProps) => {
                   <br />
                   <span className="font-medium">{email}</span>
                 </CardDescription>
-                <Alert className="bg-amber-50 text-amber-800 border-amber-200">
+                <Alert className="bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800">
                   <AlertDescription>
                     Please check your Waterloo email and click the verification
                     link to complete your registration.

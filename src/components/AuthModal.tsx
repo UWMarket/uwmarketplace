@@ -24,10 +24,21 @@ import { AtSign, AlertCircle, CheckCircle2 } from "lucide-react";
 interface AuthModalProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onClose?: () => void;
+  mode?: "signin" | "signup";
+  onModeChange?: (mode: "signin" | "signup") => void;
+  onLogin?: () => void;
 }
 
-const AuthModal = ({ isOpen = false, onOpenChange }: AuthModalProps) => {
-  const [activeTab, setActiveTab] = useState<string>("signin");
+const AuthModal = ({
+  isOpen = false,
+  onOpenChange,
+  onClose = () => {},
+  mode = "signin",
+  onModeChange = () => {},
+  onLogin = () => {},
+}: AuthModalProps) => {
+  const [activeTab, setActiveTab] = useState<string>(mode);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -38,6 +49,7 @@ const AuthModal = ({ isOpen = false, onOpenChange }: AuthModalProps) => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    onModeChange(value as "signin" | "signup");
     setError("");
     setSuccess("");
     setIsVerifying(false);
@@ -68,6 +80,7 @@ const AuthModal = ({ isOpen = false, onOpenChange }: AuthModalProps) => {
     // For now, we'll just close the modal after a delay
     setTimeout(() => {
       if (onOpenChange) onOpenChange(false);
+      onLogin();
     }, 1500);
   };
 

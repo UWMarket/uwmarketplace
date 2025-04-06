@@ -28,6 +28,8 @@ interface NavbarProps {
   userName?: string;
   unreadMessages?: number;
   onOpenAuthModal?: () => void;
+  isGuest?: boolean;
+  onSearch?: (query: string) => void;
 }
 
 const Navbar = ({
@@ -36,9 +38,12 @@ const Navbar = ({
   userName = "User",
   unreadMessages = 0,
   onOpenAuthModal = () => {},
+  isGuest = false,
+  onSearch = () => {},
 }: NavbarProps) => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const categories = [
     "All Categories",
@@ -50,6 +55,17 @@ const Navbar = ({
     "Services",
     "Other",
   ];
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    onSearch(value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(searchQuery);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
@@ -66,14 +82,24 @@ const Navbar = ({
 
         {/* Search - Desktop */}
         <div className="hidden md:flex md:flex-1 md:items-center md:justify-center md:px-6">
-          <div className="relative w-full max-w-md">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative w-full max-w-md"
+          >
             <Input
               type="search"
               placeholder="Search for items..."
               className="w-full pr-10"
+              value={searchQuery}
+              onChange={handleSearch}
             />
-            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
-          </div>
+            <button
+              type="submit"
+              className="absolute right-3 top-1/2 -translate-y-1/2 transform text-muted-foreground"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          </form>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-2">
@@ -92,12 +118,24 @@ const Navbar = ({
         <div className="flex md:hidden">
           {isSearchExpanded ? (
             <div className="absolute inset-x-0 top-0 z-50 flex h-16 items-center justify-between bg-background px-4">
-              <Input
-                type="search"
-                placeholder="Search for items..."
-                className="w-full"
-                autoFocus
-              />
+              <form onSubmit={handleSearchSubmit} className="w-full flex">
+                <Input
+                  type="search"
+                  placeholder="Search for items..."
+                  className="w-full"
+                  autoFocus
+                  value={searchQuery}
+                  onChange={handleSearch}
+                />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              </form>
               <Button
                 variant="ghost"
                 size="icon"
@@ -142,31 +180,45 @@ const Navbar = ({
                   <Button variant="ghost" size="icon" className="rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={userAvatar} alt={userName} />
-                      <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>
+                        {isGuest ? "G" : userName.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-listings">My Listings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/saved-items">Saved Items</Link>
-                  </DropdownMenuItem>
+                  {!isGuest && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/my-listings">My Listings</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/saved-items">Saved Items</Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link to="/settings">Settings</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/logout">Logout</Link>
-                  </DropdownMenuItem>
+                  {isGuest ? (
+                    <DropdownMenuItem onClick={onOpenAuthModal}>
+                      Sign In
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link to="/logout">Logout</Link>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Link to="/create-listing">
-                <Button>Create Listing</Button>
-              </Link>
+              {!isGuest && (
+                <Link to="/create-listing">
+                  <Button>Create Listing</Button>
+                </Link>
+              )}
             </>
           ) : (
             <>
@@ -252,33 +304,39 @@ const Navbar = ({
                 </SheetClose>
                 {isAuthenticated && (
                   <>
-                    <SheetClose asChild>
-                      <Link
-                        to="/my-listings"
-                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        My Listings
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link
-                        to="/messages"
-                        className="flex items-center justify-between px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Messages
-                        {unreadMessages > 0 && (
-                          <Badge className="ml-auto">{unreadMessages}</Badge>
-                        )}
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link
-                        to="/saved-items"
-                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Saved Items
-                      </Link>
-                    </SheetClose>
+                    {!isGuest && (
+                      <>
+                        <SheetClose asChild>
+                          <Link
+                            to="/my-listings"
+                            className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                          >
+                            My Listings
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link
+                            to="/messages"
+                            className="flex items-center justify-between px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                          >
+                            Messages
+                            {unreadMessages > 0 && (
+                              <Badge className="ml-auto">
+                                {unreadMessages}
+                              </Badge>
+                            )}
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link
+                            to="/saved-items"
+                            className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                          >
+                            Saved Items
+                          </Link>
+                        </SheetClose>
+                      </>
+                    )}
                     <SheetClose asChild>
                       <Link
                         to="/settings"
@@ -287,14 +345,16 @@ const Navbar = ({
                         Settings
                       </Link>
                     </SheetClose>
-                    <SheetClose asChild>
-                      <Link
-                        to="/create-listing"
-                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Create Listing
-                      </Link>
-                    </SheetClose>
+                    {!isGuest && (
+                      <SheetClose asChild>
+                        <Link
+                          to="/create-listing"
+                          className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                        >
+                          Create Listing
+                        </Link>
+                      </SheetClose>
+                    )}
                   </>
                 )}
               </div>

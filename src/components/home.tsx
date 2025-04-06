@@ -37,6 +37,7 @@ const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [browsingAsGuest, setBrowsingAsGuest] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -84,15 +85,16 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar
-        isAuthenticated={isAuthenticated}
+        isAuthenticated={isAuthenticated || browsingAsGuest}
         onLogin={() => openAuthModal("signin")}
         onRegister={() => openAuthModal("signup")}
         onLogout={handleLogout}
         onSearch={setSearchQuery}
+        isGuest={browsingAsGuest}
       />
 
       <main className="container mx-auto px-4 py-8">
-        {!isAuthenticated && (
+        {!isAuthenticated && !browsingAsGuest && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -105,10 +107,13 @@ const Home = () => {
               Buy, sell, and exchange items exclusively with other Waterloo
               students. Sign in with your @uwaterloo.ca email to get started.
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button onClick={() => openAuthModal("signin")}>Sign In</Button>
               <Button variant="outline" onClick={() => openAuthModal("signup")}>
                 Register
+              </Button>
+              <Button variant="ghost" onClick={() => setBrowsingAsGuest(true)}>
+                Browse Without Account
               </Button>
             </div>
           </motion.div>

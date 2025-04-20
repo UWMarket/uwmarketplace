@@ -56,8 +56,6 @@ const ItemCard = ({
     }
   };
 
-  // Format date to be more readable
-  // Format date to be more readable (with fallback)
   const formattedDate = createdAt
     ? new Date(createdAt).toLocaleDateString("en-US", {
         month: "short",
@@ -129,7 +127,9 @@ const ItemCard = ({
                     onClick={handleSaveClick}
                   >
                     <Heart
-                      className={`h-5 w-5 ${isSaved ? "fill-red-500 text-red-500" : "text-gray-500"}`}
+                      className={`h-5 w-5 ${
+                        isSaved ? "fill-red-500 text-red-500" : "text-gray-500"
+                      }`}
                     />
                   </Button>
                 </TooltipTrigger>

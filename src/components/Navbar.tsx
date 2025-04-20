@@ -9,6 +9,7 @@ import {
   User,
   LogIn,
   Bell,
+  Plus,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -27,7 +28,10 @@ interface NavbarProps {
   userAvatar?: string;
   userName?: string;
   unreadMessages?: number;
-  onOpenAuthModal?: () => void;
+  onLogin?: () => void;
+  onRegister?: () => void;
+  onLogout?: () => void;
+  onSearch?: (query: string) => void;
 }
 
 const Navbar = ({
@@ -35,10 +39,19 @@ const Navbar = ({
   userAvatar = "",
   userName = "User",
   unreadMessages = 0,
-  onOpenAuthModal = () => {},
+  onLogin = () => {},
+  onRegister = () => {},
+  onLogout = () => {},
+  onSearch = () => {},
 }: NavbarProps) => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    onSearch(e.target.value);
+  };
 
   const categories = [
     "All Categories",
@@ -54,7 +67,6 @@ const Navbar = ({
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Logo */}
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2">
             <ShoppingBag className="h-6 w-6 text-primary" />
@@ -64,13 +76,14 @@ const Navbar = ({
           </Link>
         </div>
 
-        {/* Search - Desktop */}
         <div className="hidden md:flex md:flex-1 md:items-center md:justify-center md:px-6">
           <div className="relative w-full max-w-md">
             <Input
               type="search"
               placeholder="Search for items..."
               className="w-full pr-10"
+              value={searchQuery}
+              onChange={handleSearch}
             />
             <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
           </div>
@@ -88,7 +101,6 @@ const Navbar = ({
           </DropdownMenu>
         </div>
 
-        {/* Search - Mobile */}
         <div className="flex md:hidden">
           {isSearchExpanded ? (
             <div className="absolute inset-x-0 top-0 z-50 flex h-16 items-center justify-between bg-background px-4">
@@ -97,6 +109,8 @@ const Navbar = ({
                 placeholder="Search for items..."
                 className="w-full"
                 autoFocus
+                value={searchQuery}
+                onChange={handleSearch}
               />
               <Button
                 variant="ghost"
@@ -118,7 +132,6 @@ const Navbar = ({
           )}
         </div>
 
-        {/* Navigation - Desktop */}
         <div className="hidden items-center gap-4 md:flex">
           {isAuthenticated ? (
             <>
@@ -159,27 +172,27 @@ const Navbar = ({
                   <DropdownMenuItem asChild>
                     <Link to="/settings">Settings</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/logout">Logout</Link>
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <Link to="/create-listing">
-                <Button>Create Listing</Button>
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Listing
+                </Button>
               </Link>
             </>
           ) : (
             <>
-              <Button variant="ghost" onClick={onOpenAuthModal}>
+              <Button variant="ghost" onClick={onLogin}>
                 <LogIn className="mr-2 h-4 w-4" />
                 Sign In
               </Button>
-              <Button onClick={onOpenAuthModal}>Register</Button>
+              <Button onClick={onRegister}>Register</Button>
             </>
           )}
         </div>
 
-        {/* Mobile Menu Trigger */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon">
@@ -212,7 +225,7 @@ const Navbar = ({
                 <div className="flex flex-col gap-2">
                   <Button
                     onClick={() => {
-                      onOpenAuthModal();
+                      onLogin();
                       setMobileMenuOpen(false);
                     }}
                   >
@@ -221,7 +234,7 @@ const Navbar = ({
                   <Button
                     variant="outline"
                     onClick={() => {
-                      onOpenAuthModal();
+                      onRegister();
                       setMobileMenuOpen(false);
                     }}
                   >
@@ -254,6 +267,14 @@ const Navbar = ({
                   <>
                     <SheetClose asChild>
                       <Link
+                        to="/create-listing"
+                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Create Listing
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link
                         to="/my-listings"
                         className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
                       >
@@ -263,12 +284,17 @@ const Navbar = ({
                     <SheetClose asChild>
                       <Link
                         to="/messages"
-                        className="flex items-center justify-between px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
                       >
                         Messages
-                        {unreadMessages > 0 && (
-                          <Badge className="ml-auto">{unreadMessages}</Badge>
-                        )}
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link
+                        to="/notifications"
+                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Notifications
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
@@ -287,44 +313,18 @@ const Navbar = ({
                         Settings
                       </Link>
                     </SheetClose>
-                    <SheetClose asChild>
-                      <Link
-                        to="/create-listing"
-                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Create Listing
-                      </Link>
-                    </SheetClose>
+                    <button
+                      onClick={() => {
+                        onLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                    >
+                      Logout
+                    </button>
                   </>
                 )}
               </div>
-
-              <div className="flex flex-col gap-1">
-                <p className="px-4 text-sm font-medium text-muted-foreground">
-                  Categories
-                </p>
-                {categories.slice(1).map((category) => (
-                  <SheetClose key={category} asChild>
-                    <Link
-                      to={`/category/${category.toLowerCase()}`}
-                      className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                    >
-                      {category}
-                    </Link>
-                  </SheetClose>
-                ))}
-              </div>
-
-              {isAuthenticated && (
-                <SheetClose asChild>
-                  <Link
-                    to="/logout"
-                    className="mt-auto flex items-center px-4 py-2 text-destructive hover:bg-destructive/10"
-                  >
-                    Logout
-                  </Link>
-                </SheetClose>
-              )}
             </div>
           </SheetContent>
         </Sheet>

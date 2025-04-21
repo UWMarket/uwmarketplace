@@ -32,6 +32,8 @@ interface NavbarProps {
   onRegister?: () => void;
   onLogout?: () => void;
   onSearch?: (query: string) => void;
+  isGuest?: boolean;
+  onOpenAuthModal?: () => void;
 }
 
 const Navbar = ({
@@ -42,16 +44,12 @@ const Navbar = ({
   onLogin = () => {},
   onRegister = () => {},
   onLogout = () => {},
+  isGuest = false,
   onSearch = () => {},
 }: NavbarProps) => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    onSearch(e.target.value);
-  };
 
   const categories = [
     "All Categories",
@@ -64,12 +62,23 @@ const Navbar = ({
     "Other",
   ];
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    onSearch(value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(searchQuery);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center">
           <Link to="/" className="flex items-center gap-2">
-            <ShoppingBag className="h-6 w-6 text-primary" />
+            <ShoppingBag className="w-6 h-6 text-primary" />
             <span className="hidden text-xl font-bold text-primary sm:inline-block">
               UW Marketplace
             </span>
@@ -77,7 +86,10 @@ const Navbar = ({
         </div>
 
         <div className="hidden md:flex md:flex-1 md:items-center md:justify-center md:px-6">
-          <div className="relative w-full max-w-md">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative w-full max-w-md"
+          >
             <Input
               type="search"
               placeholder="Search for items..."
@@ -85,8 +97,13 @@ const Navbar = ({
               value={searchQuery}
               onChange={handleSearch}
             />
-            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
-          </div>
+            <button
+              type="submit"
+              className="absolute transform -translate-y-1/2 right-3 top-1/2 text-muted-foreground"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          </form>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-2">
@@ -103,14 +120,12 @@ const Navbar = ({
 
         <div className="flex md:hidden">
           {isSearchExpanded ? (
-            <div className="absolute inset-x-0 top-0 z-50 flex h-16 items-center justify-between bg-background px-4">
+            <div className="absolute inset-x-0 top-0 z-50 flex items-center justify-between h-16 px-4 bg-background">
               <Input
                 type="search"
                 placeholder="Search for items..."
                 className="w-full"
                 autoFocus
-                value={searchQuery}
-                onChange={handleSearch}
               />
               <Button
                 variant="ghost"
@@ -118,7 +133,7 @@ const Navbar = ({
                 className="ml-2"
                 onClick={() => setIsSearchExpanded(false)}
               >
-                <X className="h-5 w-5" />
+                <X className="w-5 h-5" />
               </Button>
             </div>
           ) : (
@@ -127,19 +142,19 @@ const Navbar = ({
               size="icon"
               onClick={() => setIsSearchExpanded(true)}
             >
-              <Search className="h-5 w-5" />
+              <Search className="w-5 h-5" />
             </Button>
           )}
         </div>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="items-center hidden gap-4 md:flex">
           {isAuthenticated ? (
             <>
               <Link to="/messages">
                 <Button variant="ghost" size="icon" className="relative">
-                  <MessageSquare className="h-5 w-5" />
+                  <MessageSquare className="w-5 h-5" />
                   {unreadMessages > 0 && (
-                    <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-xs">
+                    <Badge className="absolute w-5 h-5 p-0 text-xs rounded-full -right-1 -top-1">
                       {unreadMessages}
                     </Badge>
                   )}
@@ -147,45 +162,58 @@ const Navbar = ({
               </Link>
               <Link to="/notifications">
                 <Button variant="ghost" size="icon">
-                  <Bell className="h-5 w-5" />
+                  <Bell className="w-5 h-5" />
                 </Button>
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="w-8 h-8">
                       <AvatarImage src={userAvatar} alt={userName} />
-                      <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>
+                        {isGuest ? "G" : userName.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-listings">My Listings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/saved-items">Saved Items</Link>
-                  </DropdownMenuItem>
+                  {!isGuest && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile">Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/my-listings">My Listings</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/saved-items">Saved Items</Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link to="/settings">Settings</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onLogout}>Logout</DropdownMenuItem>
+                  {isGuest ? (
+                    <DropdownMenuItem onClick={onOpenAuthModal}>
+                      Sign In
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link to="/logout">Logout</Link>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Link to="/create-listing">
-                <Button className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Listing
-                </Button>
-              </Link>
+              {!isGuest && (
+                <Link to="/create-listing">
+                  <Button>Create Listing</Button>
+                </Link>
+              )}
             </>
           ) : (
             <>
               <Button variant="ghost" onClick={onLogin}>
-                <LogIn className="mr-2 h-4 w-4" />
+                <LogIn className="w-4 h-4 mr-2" />
                 Sign In
               </Button>
               <Button onClick={onRegister}>Register</Button>
@@ -196,13 +224,13 @@ const Navbar = ({
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
+              <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[80%] sm:w-[350px]">
             <div className="flex flex-col gap-6 py-4">
               <div className="flex items-center gap-2">
-                <ShoppingBag className="h-6 w-6 text-primary" />
+                <ShoppingBag className="w-6 h-6 text-primary" />
                 <span className="text-xl font-bold text-primary">
                   UW Marketplace
                 </span>
@@ -210,7 +238,7 @@ const Navbar = ({
 
               {isAuthenticated ? (
                 <div className="flex items-center gap-4 pb-4">
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="w-10 h-10">
                     <AvatarImage src={userAvatar} alt={userName} />
                     <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
                   </Avatar>
@@ -267,14 +295,6 @@ const Navbar = ({
                   <>
                     <SheetClose asChild>
                       <Link
-                        to="/create-listing"
-                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Create Listing
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link
                         to="/my-listings"
                         className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
                       >
@@ -284,17 +304,12 @@ const Navbar = ({
                     <SheetClose asChild>
                       <Link
                         to="/messages"
-                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                        className="flex items-center justify-between px-4 py-2 hover:bg-accent hover:text-accent-foreground"
                       >
                         Messages
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link
-                        to="/notifications"
-                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Notifications
+                        {unreadMessages > 0 && (
+                          <Badge className="ml-auto">{unreadMessages}</Badge>
+                        )}
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
@@ -313,15 +328,14 @@ const Navbar = ({
                         Settings
                       </Link>
                     </SheetClose>
-                    <button
-                      onClick={() => {
-                        onLogout();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                    >
-                      Logout
-                    </button>
+                    <SheetClose asChild>
+                      <Link
+                        to="/create-listing"
+                        className="flex items-center px-4 py-2 hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Create Listing
+                      </Link>
+                    </SheetClose>
                   </>
                 )}
               </div>

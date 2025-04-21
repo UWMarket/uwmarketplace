@@ -2,13 +2,14 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import MessageButton from "./MessageButton";
 
 interface ItemCardProps {
   id: string;
@@ -139,23 +140,11 @@ const ItemCard = ({
               </Tooltip>
             </TooltipProvider>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleMessageClick}
-                  >
-                    <MessageCircle className="h-5 w-5 text-gray-500" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Message seller</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <MessageButton
+              sellerId={seller?.id || ""}
+              onMessage={handleMessageClick}
+              className="h-8 w-8"
+            />
           </div>
         </div>
       </CardContent>

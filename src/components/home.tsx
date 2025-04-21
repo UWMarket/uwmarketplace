@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, ChevronDown } from "lucide-react";
 import Navbar from "./Navbar";
@@ -13,6 +13,7 @@ import { Separator } from "./ui/separator";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
+import { api } from "../lib/api";
 
 const categories = [
   { id: "electronics", name: "Electronics" },
@@ -33,24 +34,62 @@ const conditions = [
   { id: "poor", name: "Poor" },
 ];
 
-const Home = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+interface HomeProps {
+  isAuthenticated: boolean;
+  onLogout: () => void;
+}
+
+const Home = ({ isAuthenticated, onLogout }: HomeProps) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [browsingAsGuest, setBrowsingAsGuest] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [listings, setListings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  useEffect(() => {
+    fetchListings();
+    const email = localStorage.getItem("userEmail");
+    if (email) {
+      setUserEmail(email);
+    }
+  }, [searchQuery, priceRange, selectedCategories, selectedConditions]);
+
+  const fetchListings = async () => {
+    try {
+      setIsLoading(true);
+      const filters = {
+        search: searchQuery || undefined,
+        minPrice: priceRange[0],
+        maxPrice: priceRange[1],
+        category:
+          selectedCategories.length > 0 ? selectedCategories[0] : undefined,
+        condition:
+          selectedConditions.length > 0 ? selectedConditions[0] : undefined,
+      };
+      const data = await api.listings.getAll(filters);
+      setListings(data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to fetch listings");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogin = () => {
-    // Mock authentication
-    setIsAuthenticated(true);
     setShowAuthModal(false);
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    onLogout();
   };
 
   const openAuthModal = (mode: "signin" | "signup") => {
@@ -62,7 +101,7 @@ const Home = () => {
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId],
+        : [...prev, categoryId]
     );
   };
 
@@ -70,7 +109,7 @@ const Home = () => {
     setSelectedConditions((prev) =>
       prev.includes(conditionId)
         ? prev.filter((id) => id !== conditionId)
-        : [...prev, conditionId],
+        : [...prev, conditionId]
     );
   };
 
@@ -84,15 +123,16 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar
-        isAuthenticated={isAuthenticated}
+        isAuthenticated={isAuthenticated || browsingAsGuest}
         onLogin={() => openAuthModal("signin")}
         onRegister={() => openAuthModal("signup")}
         onLogout={handleLogout}
         onSearch={setSearchQuery}
+        isGuest={browsingAsGuest}
       />
 
       <main className="container mx-auto px-4 py-8">
-        {!isAuthenticated && (
+        {!isAuthenticated && !browsingAsGuest && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -105,10 +145,13 @@ const Home = () => {
               Buy, sell, and exchange items exclusively with other Waterloo
               students. Sign in with your @uwaterloo.ca email to get started.
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button onClick={() => openAuthModal("signin")}>Sign In</Button>
               <Button variant="outline" onClick={() => openAuthModal("signup")}>
                 Register
+              </Button>
+              <Button variant="ghost" onClick={() => setBrowsingAsGuest(true)}>
+                Browse Without Account
               </Button>
             </div>
           </motion.div>
@@ -248,43 +291,7 @@ const Home = () => {
                 </TabsList>
 
                 <TabsContent value="all" className="mt-0">
-                  <ItemGrid
-                    searchQuery={searchQuery}
-                    priceRange={priceRange}
-                    selectedCategories={selectedCategories}
-                    selectedConditions={selectedConditions}
-                    isAuthenticated={isAuthenticated}
-                  />
-                </TabsContent>
-                <TabsContent value="recent" className="mt-0">
-                  <ItemGrid
-                    searchQuery={searchQuery}
-                    priceRange={priceRange}
-                    selectedCategories={selectedCategories}
-                    selectedConditions={selectedConditions}
-                    isAuthenticated={isAuthenticated}
-                    filter="recent"
-                  />
-                </TabsContent>
-                <TabsContent value="popular" className="mt-0">
-                  <ItemGrid
-                    searchQuery={searchQuery}
-                    priceRange={priceRange}
-                    selectedCategories={selectedCategories}
-                    selectedConditions={selectedConditions}
-                    isAuthenticated={isAuthenticated}
-                    filter="popular"
-                  />
-                </TabsContent>
-                <TabsContent value="free" className="mt-0">
-                  <ItemGrid
-                    searchQuery={searchQuery}
-                    priceRange={[0, 0]}
-                    selectedCategories={selectedCategories}
-                    selectedConditions={selectedConditions}
-                    isAuthenticated={isAuthenticated}
-                    filter="free"
-                  />
+                  <ItemGrid items={listings} isLoading={isLoading} />
                 </TabsContent>
               </Tabs>
             </div>
@@ -292,15 +299,10 @@ const Home = () => {
         </div>
       </main>
 
-      {showAuthModal && (
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          mode={authMode}
-          onModeChange={setAuthMode}
-          onLogin={handleLogin}
-        />
-      )}
+      <AuthModal
+        isOpen={showAuthModal}
+        onOpenChange={(open) => setShowAuthModal(open)}
+      />
     </div>
   );
 };

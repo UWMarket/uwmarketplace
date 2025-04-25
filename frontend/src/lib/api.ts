@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5002/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5002/api";
 
 interface ListingFilters {
   search?: string;
@@ -21,24 +22,27 @@ export const api = {
           }
         });
 
-        console.log('Fetching listings with params:', Object.fromEntries(queryParams.entries()));
+        console.log(
+          "Fetching listings with params:",
+          Object.fromEntries(queryParams.entries()),
+        );
         const response = await fetch(`${API_BASE_URL}/listings?${queryParams}`);
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
-          console.error('Failed to fetch listings:', {
+          console.error("Failed to fetch listings:", {
             status: response.status,
             statusText: response.statusText,
-            error: errorData
+            error: errorData,
           });
           throw new Error(`Failed to fetch listings: ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log('Fetched listings:', data);
+        console.log("Fetched listings:", data);
         return data;
       } catch (error) {
-        console.error('Error fetching listings:', error);
+        console.error("Error fetching listings:", error);
         throw error;
       }
     },
@@ -48,17 +52,17 @@ export const api = {
         const response = await fetch(`${API_BASE_URL}/listings/${id}`);
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
-          console.error('Failed to fetch listing:', {
+          console.error("Failed to fetch listing:", {
             id,
             status: response.status,
             statusText: response.statusText,
-            error: errorData
+            error: errorData,
           });
           throw new Error(`Failed to fetch listing: ${response.statusText}`);
         }
         return response.json();
       } catch (error) {
-        console.error('Error fetching listing:', error);
+        console.error("Error fetching listing:", error);
         throw error;
       }
     },
@@ -73,7 +77,7 @@ export const api = {
       sellerId: number;
     }) => {
       try {
-        console.log('Creating listing with data:', data);
+        console.log("Creating listing with data:", data);
         const response = await fetch(`${API_BASE_URL}/listings`, {
           method: "POST",
           headers: {
@@ -84,32 +88,35 @@ export const api = {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
-          console.error('Failed to create listing:', {
+          console.error("Failed to create listing:", {
             status: response.status,
             statusText: response.statusText,
-            error: errorData
+            error: errorData,
           });
           throw new Error(`Failed to create listing: ${response.statusText}`);
         }
 
         const result = await response.json();
-        console.log('Created listing:', result);
+        console.log("Created listing:", result);
         return result;
       } catch (error) {
-        console.error('Error creating listing:', error);
+        console.error("Error creating listing:", error);
         throw error;
       }
     },
 
-    update: async (id: number, data: {
-      name?: string;
-      description?: string;
-      price?: number;
-      imageUrl?: string;
-      status?: string;
-      category?: string;
-      condition?: string;
-    }) => {
+    update: async (
+      id: number,
+      data: {
+        name?: string;
+        description?: string;
+        price?: number;
+        imageUrl?: string;
+        status?: string;
+        category?: string;
+        condition?: string;
+      },
+    ) => {
       const response = await fetch(`${API_BASE_URL}/listings/${id}`, {
         method: "PUT",
         headers: {
@@ -133,4 +140,4 @@ export const api = {
       return response.json();
     },
   },
-}; 
+};

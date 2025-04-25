@@ -24,7 +24,7 @@ interface ItemCardProps {
     id: string;
   };
   createdAt: string;
-  onSave?: (id: string) => void;
+  onSave: (id: string) => void;
   onMessage?: (sellerId: string) => void;
   onCardClick?: (id: string) => void;
   isSaved?: boolean;

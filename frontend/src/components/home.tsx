@@ -101,7 +101,7 @@ const Home = ({ isAuthenticated, onLogout }: HomeProps) => {
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
         ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
+        : [...prev, categoryId],
     );
   };
 
@@ -109,7 +109,7 @@ const Home = ({ isAuthenticated, onLogout }: HomeProps) => {
     setSelectedConditions((prev) =>
       prev.includes(conditionId)
         ? prev.filter((id) => id !== conditionId)
-        : [...prev, conditionId]
+        : [...prev, conditionId],
     );
   };
 
